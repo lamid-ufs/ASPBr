@@ -1,5 +1,5 @@
 from tabs.analise_sentimentos import tab_analise_sentimentos
-#from tabs.saiba_mais import tab_saiba_mais
+from tabs.saiba_mais import tab_saiba_mais
 import streamlit as st
 
 st.set_page_config(page_title="ASPBr", page_icon="🔍", layout="wide")
@@ -13,4 +13,5 @@ tab1, tab2 = st.tabs(["Análise de Sentimentos", "Saiba mais"])
 with tab1:
     tab_analise_sentimentos()
 
-    
+with tab2:
+    tab_saiba_mais()
