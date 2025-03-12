@@ -20,6 +20,26 @@ def read_planilha(arquivo):
     else:
         return pd.read_excel(arquivo)
 
+def extrator_colunas(arquivo):
+    """
+    Transforma um arquivo em dataframe e retorna um seletor de
+    suas colunas.
+    """
+    if arquivo is not None:
+        dataframe = read_planilha(arquivo)
+        colunas = dataframe.columns
+
+        if not colunas.empty:
+            coluna = st.selectbox(
+                "Que coluna você deseja analisar?",
+                colunas,
+                index=None,
+                placeholder="Selecione a coluna desejada...",
+            )
+        else:
+            st.error("""ERRO: certifique-se de que a planilha inserida possui dados""",
+                icon=":material/quick_reference:")
+
 
 def analisador(texto):
     """
@@ -35,9 +55,7 @@ def upload_arquivo():
     arquivo = st.file_uploader(label ="upload_planilhas",
                                 type = ["csv", "xls", "xlsx", "ods"],
                                 label_visibility = "collapsed")
-    if arquivo is not None:
-        dataframe = read_planilha(arquivo)
-        st.dataframe(dataframe)
+    extrator_colunas(arquivo)
 
 def tab_analise_sentimentos():
     """
