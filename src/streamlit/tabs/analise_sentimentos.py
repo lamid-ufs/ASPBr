@@ -1,6 +1,8 @@
 from pysentimiento import create_analyzer
 from utils import *
 import streamlit as st
+import pandas as pd
+from io import StringIO
 
 @st.cache_resource
 def load_pysentimiento_analyzer():
@@ -14,6 +16,10 @@ def analisador(texto):
     analyzer = load_pysentimiento_analyzer()
     return analyzer.predict(texto)
 
+def upload_arquivo():
+    arquivo = st.file_uploader(label ="upload_planilhas",
+                                type = ["csv", "xls", "xlsx", "ods"],
+                                label_visibility = "collapsed")
 
 def tab_analise_sentimentos():
     """
@@ -35,5 +41,7 @@ def tab_analise_sentimentos():
                     "**Negativa**": [resultado.probas['NEG']]
                 }
             )
+    st.markdown("Ou insira uma planilha abaixo")
+    upload_arquivo()
     logo_lamid()
     
