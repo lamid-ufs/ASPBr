@@ -8,6 +8,25 @@ from io import StringIO
 def load_pysentimiento_analyzer():
     return create_analyzer(task="sentiment", lang="pt")
 
+@st.dialog("Planilha inválida!")
+def erro():
+    st.error("certifique-se de que a planilha inserida possui dados",
+    icon=":material/quick_reference:")
+    
+    if st.button("Ok"):
+        st.cache_data.clear()
+        del st.session_state.arquivo_lido
+        st.rerun()
+
+
+@st.dialog("Análise de colunas", width = "large")
+def seletor(colunas):
+    st.selectbox(
+        "Que coluna você deseja analisar?",
+        colunas,
+        index=None,
+        placeholder="Selecione a coluna desejada...",
+    )
 
 def read_planilha(arquivo):
     """
@@ -30,16 +49,10 @@ def extrator_colunas(arquivo):
         colunas = dataframe.columns
 
         if not colunas.empty:
-            coluna = st.selectbox(
-                "Que coluna você deseja analisar?",
-                colunas,
-                index=None,
-                placeholder="Selecione a coluna desejada...",
-            )
+            seletor(colunas)
         else:
-            st.error("""ERRO: certifique-se de que a planilha inserida possui dados""",
-                icon=":material/quick_reference:")
-
+            erro()
+            
 
 def analisador(texto):
     """
@@ -52,7 +65,9 @@ def upload_arquivo():
     """
     Gerencia os arquivos inseridos e exibe um dataframe.
     """
+    
     arquivo = st.file_uploader(label ="upload_planilhas",
+                                key = f"arquivo_lido",
                                 type = ["csv", "xls", "xlsx", "ods"],
                                 label_visibility = "collapsed")
     extrator_colunas(arquivo)
