@@ -3,15 +3,26 @@ from utils import *
 import streamlit as st
 import pandas as pd
 from io import StringIO
+import time
 
 @st.cache_resource
 def load_pysentimiento_analyzer():
+    """
+    Inicializa o analisador de sentimentos para
+    a língua portuguesa.
+    """
     return create_analyzer(task="sentiment", lang="pt")
+
 
 @st.dialog("Planilha inválida!")
 def erro(tipo):
+    """
+    Modulariza os tipos de mensagem de erro, de acordo
+    com o estado da planilha inserida, exibindo-as como
+    mensagem pop-up.
+    """
     if tipo == "VAZIA":
-        mensagem = "certifique-se de que a planilha inserida possui dados"
+        mensagem = "Certifique-se de que a planilha inserida possui dados"
     if tipo == "NULOS":
         mensagem = "Não é possível analisar a planilha: existem células nulas/vazias no arquivo"
     st.error(mensagem,
@@ -22,29 +33,36 @@ def erro(tipo):
         del st.session_state.arquivo_lido
         st.rerun()
 
-@st.dialog("### Resultado", width = large)
-def analisador_coluna(resultados):
 
+def analisador_coluna(resultados):
+    """
+    Retorna um container com os resultados da análise de sentimentos
+    formatada em tabela.
+    """
     with st.container(border=True):
         st.markdown("#### Resultado")
         st.markdown("A `Polaridade` indica qual é o sentimento predominante no texto e as colunas `'Positiva'`, `'Neutra'`, e `'Negativa'` indicam qual a probabilidade do texto possuir a respectiva polaridade.")
-        
-        for resultado in resultados:
-            st.table(
+        st.table(
                 {
                     #"**Polaridade**": [resultado.output],
                     "**Positiva**": [resultado.probas['POS']],
                     "**Neutra**": [resultado.probas['NEU']],
                     "**Negativa**": [resultado.probas['NEG']]
-                }
+                } for resultado in resultados
             )
 
-def carregamento():
+
+def carregamento(valores):
+    """
+    Exibe ícone de carregamento enquanto a análise
+    é processada e retorna os resultados desta.
+    """
     estado = False
-    while not estado:
-        analisador()
-        st.spinner("Analisando...")
-    
+    with st.spinner("Analisando..."):
+        while not estado:
+            time.sleep(1)
+            estado, resultados = analisador(valores)
+    return resultados
 
 
 @st.dialog("Análise de colunas", width = "large")
@@ -58,12 +76,12 @@ def seletor(colunas, dataframe):
     
     if st.button("Analisar",
                  key = 'analise_coluna',
-                 help = "Clique para analisar as emoções da coluna selecionada",
-                 on_click = carregamento()):
+                 help = "Clique para analisar as emoções da coluna selecionada",):
         valores = dataframe[coluna].tolist()
-
-        
+        resultados = carregamento(valores)
+        analisador_coluna(resultados)
     
+
 def read_planilha(arquivo):
     """
     Centraliza a leitura do arquivo a partir da extensão
@@ -74,6 +92,7 @@ def read_planilha(arquivo):
         return pd.read_csv(arquivo)
     else:
         return pd.read_excel(arquivo)
+
 
 def extrator_colunas(arquivo):
     """
@@ -101,9 +120,11 @@ def analisador(texto):
     analyzer = load_pysentimiento_analyzer()
     return True, analyzer.predict(texto)
 
+
 def upload_arquivo():
     """
-    Gerencia os arquivos inseridos e exibe um dataframe.
+    Gerencia os arquivos inseridos e exibe um seletor
+    de colunas.
     """
     
     arquivo = st.file_uploader(label ="upload_planilhas",
@@ -111,6 +132,7 @@ def upload_arquivo():
                                 type = ["csv", "xls", "xlsx", "ods"],
                                 label_visibility = "collapsed")
     extrator_colunas(arquivo)
+
 
 def tab_analise_sentimentos():
     """
